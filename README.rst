@@ -2,6 +2,10 @@
 Watchmen
 =============================
 
+.. image:: https://img.shields.io/badge/docs-latest-blue.svg?style=flat
+        :target: http://watchmenpy.readthedocs.org
+
+
 Watchdog implementation to monitor functions or methods.
 
 To watch a longrunning function you can do the following
