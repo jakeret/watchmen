@@ -11,7 +11,6 @@
 # You should have received a copy of the GNU General Public License
 # along with watchmen.  If not, see <http://www.gnu.org/licenses/>.
 
-
 '''
 Created on Aug 8, 2016
 
@@ -26,6 +25,9 @@ import sys
 import os
 import Queue
 import functools
+import inspect
+import ctypes
+import gc
 
 __all__ = ["watch"]
 
@@ -132,6 +134,30 @@ class CallableWrapper(threading.Thread):
     def cancel(self):
         pass
 
+    def raiseExc(self, exctype):
+        """Raises the given exception type in the context of this thread.
+
+        If the thread is busy in a system call (time.sleep(),
+        socket.accept(), ...), the exception is simply ignored.
+
+        """
+        _async_raise(self.ident, exctype )
+
+def _async_raise(tid, exctype):
+    '''Raises an exception in the threads with id tid'''
+    if not inspect.isclass(exctype):
+        raise TypeError("Only types can be raised (not instances)")
+    tid = ctypes.c_long(tid)
+    res = ctypes.pythonapi.PyThreadState_SetAsyncExc(tid,
+                                                     ctypes.py_object(exctype))
+    if res == 0:
+        raise ValueError("invalid thread id")
+    elif res != 1:
+        # "if it returns a number greater than one, you're in trouble,
+        # and you should call it again with exc=NULL to revert the effect"
+        ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, 0)
+        raise SystemError("PyThreadState_SetAsyncExc failed")
+
 
 def watch(original_function=None, max_mem=None, max_time=None, sample_rate=None):
     """
@@ -164,6 +190,12 @@ def watch(original_function=None, max_mem=None, max_time=None, sample_rate=None)
                 t.cancel()
             
             if event.type == Event.LIMIT:
+                #nasty: trying to kill the wrapper thread
+                threads[0].raiseExc(SystemError)
+                while threads[0].isAlive():
+                    threads[0].raiseExc(SystemError)
+                    time.sleep(0.1)
+                gc.collect()
                 raise WatchmenException(event.value)
             
             if event.type == Event.ERROR:

@@ -18,7 +18,6 @@ from __future__ import print_function, division, absolute_import, unicode_litera
 
 import pytest
 from watchmen import watch
-import time
 from watchmen.watchmen import WatchmenException
 
 
@@ -36,6 +35,13 @@ class TestWatchmen(object):
             return 1
         watched_fkt = watch(fkt)
         assert watched_fkt() == 1
+
+    def test_raising_callbable(self):
+        def fkt():
+            raise ValueError
+        watched_fkt = watch(fkt)
+        with pytest.raises(ValueError):
+            watched_fkt()
 
     def test_args_callbable(self):
         def fkt(a):
@@ -63,7 +69,7 @@ class TestWatchmen(object):
         
     def test_timeout(self):
         def fkt():
-            time.sleep(20)
+            [i*j for i in range(100000) for j in range(100000)]
         watched_fkt = watch(max_time=1)(fkt)
         
         with pytest.raises(WatchmenException):
@@ -71,7 +77,7 @@ class TestWatchmen(object):
 
     def test_args_timeout(self):
         def fkt(t):
-            time.sleep(t)
+            [i*j for i in range(100000) for j in range(100000)]
         watched_fkt = watch(max_time=1)(fkt)
         
         with pytest.raises(WatchmenException):
@@ -79,7 +85,7 @@ class TestWatchmen(object):
 
     def test_kwargs_timeout(self):
         def fkt(t):
-            time.sleep(t)
+            [i*j for i in range(100000) for j in range(100000)]
         watched_fkt = watch(max_time=1)(fkt)
         
         with pytest.raises(WatchmenException):
@@ -87,10 +93,8 @@ class TestWatchmen(object):
 
     def test_memlimit(self):
         def fkt():
-            l = [i*j for i in range(10000) for j in range(10000)]
-            time.sleep(10)
+            [i*j for i in range(100000) for j in range(100000)]
         watched_fkt = watch(max_mem=100)(fkt)
         
         with pytest.raises(WatchmenException):
             watched_fkt()
-
