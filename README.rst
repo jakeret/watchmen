@@ -4,7 +4,9 @@ Watchmen
 
 Watchdog implementation to monitor functions or methods.
 
-To watch a longrunning function you can do the following::
+To watch a longrunning function you can do the following
+
+.. code-block:: python
 
 	import time
 	import watchmen
@@ -20,7 +22,9 @@ After 1 second an exception is raised::
 	watchmen.watchmen.WatchmenException: Time limit exceeded
 	
 	
-If you want to watch the memory consumption of a function::
+If you want to watch the memory consumption of a function
+
+.. code-block:: python
 
 	@watchmen.watch(max_mem=100)
 	def memory_hungry(s):
@@ -32,7 +36,9 @@ After a while an exception is raised::
 
 	watchmen.watchmen.WatchmenException: Memory limit exceeded. RSS: 152.09765625 MB
 
-**watchmen** can also be used on instance methods::
+**watchmen** can also be used on instance methods
+
+.. code-block:: python
 
 	class Demo(object):
 	    @watchmen.watch(max_mem=100)
